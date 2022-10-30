@@ -8,7 +8,7 @@ def findPE(filename):
   success = 0
   result = b''
   numofBytes = 1
-  with open(os.path.join("C:\\Users\\Martin\\Desktop\\VirusShare_00341", filename), 'rb') as f:
+  with open(os.path.join("C:\\Users\\Martin\\Desktop\\VirusShare_00222", filename), 'rb') as f:
     try:
       byte = f.read(numofBytes)
     except:
@@ -42,7 +42,7 @@ if __name__ == "__main__":
   i = 0
   j = 0
 # list all files in the directory
-  for filename in os.listdir("C:\\Users\\Martin\\Desktop\\VirusShare_00341"):
+  for filename in os.listdir("C:\\Users\\Martin\\Desktop\\VirusShare_00222"):
     print(i, filename)
     curr_pe = b""
      # open in readonly mode
