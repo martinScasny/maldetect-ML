@@ -3,8 +3,25 @@ import pefile
 import sys
 import math
 import re
+import hashlib
 
+# BUF_SIZE is totally arbitrary, change for your app!
+def makeHash(filename):
+    BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
 
+    md5 = hashlib.md5()
+    sha1 = hashlib.sha1()
+
+    with open(filename, 'rb') as f:
+        while True:
+            data = f.read(BUF_SIZE)
+            if not data:
+                break
+            md5.update(data)
+            sha1.update(data)
+
+    return [md5.hexdigest(),sha1.hexdigest()]
+  
 def isSectionExecutable(section):
     characteristics = getattr(section, 'Characteristics')
     if characteristics & 0x00000020 > 0 or characteristics & 0x20000000 > 0:
@@ -36,6 +53,7 @@ def extractCode(pe):
   print("I ma hodnotu ",i,sys.getsizeof(result))
   return result
 
+
 def extractStrings(filename):
   result = []
   file = open(filename, 'rb')
@@ -66,37 +84,30 @@ def extractImports(pe):
     res_imports[i] = res_imports[i].decode()
     
   return res_imports
-      
-def calcEntropy(pe):
-  # TODO
-  pass
 
+##### CLASS #########################
 class Element_PE():
   def __init__(self,pe,filename):
     self.code = extractCode(pe)
     self.strings = extractStrings(filename)
     self.imports = extractImports(pe)
+    self.hash = makeHash(filename)
 
     
   def getCode(self): return self.code
   def getStrings(self): return self.strings
   def getImports(self): return self.imports
-  def getEntropy(self): return self.entropy
+  def getHash(self): return self.hash
 ###############################
 
-
-def packerCheck(entropy):
-  # TODO
-  # pestudio or smt else for packer detection
-  pass
 
 def createObject(filename):
   pe = pefile.PE(filename)
   object = Element_PE(pe,filename)
   return object
   
-peelement = createObject('sample31')
-for x in peelement.getStrings():
-  print(x)
+# peelement = createObject('sample31')
+# print(peelement.getHash())
+print(makeHash('963d8cbbf9b8286b64219b5f3d445f912749deaa111b3a86912c596de36f9a35'))
 
 
