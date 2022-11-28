@@ -68,11 +68,12 @@ def getNgram(filename,n):
         currGram = bytes.fromhex("".join(currGram.hex())[2:]) + bvalue
         if currGram:
             result.append(int(currGram.hex(),16))
-        
+            
+    file.close()
     return selectDistinctNgram(result)
 
 				
-print(len(getNgram('sample31',4)))
+# print(len(getNgram('sample31',4)))
 
 
 # CODE = b"\x55\x48\x8b\x05\xb8\x13\x00\x00"
