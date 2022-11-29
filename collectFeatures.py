@@ -9,8 +9,8 @@ def collectNGrams(filepath,ngramSize,ngramCount):
     # [ins][count]
     # sort by count
     # 
-    arr = [[0,0]]*(pow(2,ngramSize*8))
-    np_arr = np.array(arr)
+    py_values = list()
+    arr = (ctypes.c_ushort * (pow(2,32)))(*py_values)
     
     mypath = filepath
     # collect all ngram values 
@@ -18,11 +18,13 @@ def collectNGrams(filepath,ngramSize,ngramCount):
         print('Collecting values from file:',file)
         values = feature_extractor.getNgram(f"{filepath}\\{file}",ngramSize)
         for x in values:
-            np_arr[x][1] = x
-            np_arr[x][0] += 1
+            arr[x] += 1
         print('Values were collected...')
     print("Sorting is happening ...")
+    # replace with C func
+    ntopValues = nsort(arr)
     sorted_arr = np_arr[np.argsort(np_arr[:,0],kind='heapsort')]
+    # 
     print("DONE :)")
     result = sorted_arr.tolist()[-ngramCount:]
     return [result[x][1] for x in range(len(result))]
