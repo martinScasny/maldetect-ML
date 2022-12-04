@@ -133,34 +133,25 @@ unsigned int** findNTopValues(int queueSize, uint16_t (*arr)[], unsigned int n) 
     return result;
 }
 
-int main(char** argv,int argc) {
-    printf("som tu");
-    unsigned int n = 4294967295;
-    int queueLen = 2000;
-    printf("som tu");
-    uint16_t (* arr)[n] = malloc(sizeof(uint16_t)*n);
-    unsigned int** result = NULL;
-    for(unsigned int i = 0; i < n; i++) {
-        // printf("%u\n",i);
-        (*arr)[i] = rand()%n;
-    }
+// int main(char** argv,int argc) {
+//     printf("som tu");
+//     unsigned int n = 4294967295;
+//     int queueLen = 2000;
+//     printf("som tu");
+//     uint16_t (* arr)[n] = malloc(sizeof(uint16_t)*(unsigned long long)(n+1));
+//     unsigned int** result = NULL;
+//     for(unsigned int i = 0; i < n; i++) {
+//         // printf("%u\n",i);
+//         (*arr)[i] = rand()%n;
+//     }
 
-    result = findNTopValues(queueLen,arr,n);
-    free(arr);
-    for (unsigned int i = 0; i < queueLen; i++)
-    {
-        printf("%d\n",(*result[i]));
-    }
-    free(result);
-    // unsigned int n = 1000;
-    // uint16_t (* arr)[n] = malloc(sizeof(uint16_t)*n);
-    // for (unsigned int i = 0; i < n; i++)
-    // {
-    //     (*arr)[i] = i;
-    // }
+//     result = findNTopValues(queueLen,arr,n);
+//     free(arr);
+//     for (unsigned int i = 0; i < queueLen; i++)
+//     {
+//         printf("%d\n",(*result[i]));
+//     }
+//     free(result);
     
-
-    
-
-    return 0;
-}
+//     return 0;
+// }

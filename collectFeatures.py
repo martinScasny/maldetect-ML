@@ -12,8 +12,8 @@ def collectNGrams(filepath,ngramSize,ngramCount):
     path = r'C:\Users\Martin\Desktop\Anti-malware-tool\Anti-malware-tool\nsort.so'
     libObject = CDLL(path)
     nsort = libObject.findNTopValues
-    nsort.argtypes = [c_int, POINTER(c_uint16), c_uint16]
-    nsort.restype = POINTER(POINTER(c_uint16))
+    nsort.argtypes = [c_int, POINTER(c_uint16), c_uint32]
+    nsort.restype = POINTER(POINTER(c_uint32))
     arr = (c_uint16 * 4294967296)()
     arrPtr = pointer(arr)
     ntopValues = POINTER(POINTER(c_uint16))
@@ -34,17 +34,12 @@ def collectNGrams(filepath,ngramSize,ngramCount):
     print("DONE :)")
     result = []
     for x in range(ngramCount):
-        result.append(ntopValues.content[x])
+        result.append(ntopValues[x].contents.value)
     
     return result
     
     
 
-topNGrams = collectNGrams('C:\\Users\\Martin\\Desktop\\Samples',4,2000)
+topNGrams = collectNGrams('C:\\Users\\Martin\\Desktop\\Samples',4,50)
 print(topNGrams)
 
-# arr = (c_uint16 * (pow(255,4)))()
-# arrPtr = pointer(arr)
-# arrPtr.contents[0] = 23
-# arrPtr.contents[1] = 54
-# print(arrPtr.contents[0],arrPtr.contents[1])
