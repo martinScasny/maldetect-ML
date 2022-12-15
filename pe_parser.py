@@ -29,7 +29,7 @@ def isSectionExecutable(section):
         return True
     return False
 
-def isPacked(section):
+def isSectionPacked(section):
   set = section.get_data(ignore_padding=False)
   length = len(set)
   sum = [0]*256
@@ -44,12 +44,18 @@ def isPacked(section):
   print("Entropia pre sekciu",section.Name,"je",entropy)
   return entropy > 7.2
 
+def isBinPacked(pe):
+  for section in pe.sections:
+    if isSectionExecutable(section) and isSectionPacked(section):
+      return True
+  return False
+  
 def extractCode(pe):
   code = b""
   i = 0
   result = []
   for section in pe.sections:
-    if section.SizeOfRawData is not 0 and isSectionExecutable(section) and not isPacked(section):
+    if section.SizeOfRawData != 0 and isSectionExecutable(section) and not isSectionPacked(section):
       code += section.get_data(ignore_padding=False)
       i += 1
   # capstone disassembly 
@@ -98,12 +104,13 @@ class Element_PE():
     self.strings = extractStrings(filename)
     self.imports = extractImports(pe)
     self.hash = makeHash(filename)
-
+    self.packed = isBinPacked(pe)
     
   def getCode(self): return self.code
   def getStrings(self): return self.strings
   def getImports(self): return self.imports
   def getHash(self): return self.hash
+  def getPacked(self): return self.packed
 ###############################
 
 
