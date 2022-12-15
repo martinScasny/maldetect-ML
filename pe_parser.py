@@ -1,4 +1,5 @@
 from fileinput import close
+from capstone import *
 import pefile
 import sys
 import math
@@ -44,13 +45,18 @@ def isPacked(section):
   return entropy > 7.2
 
 def extractCode(pe):
-  result = b""
+  code = b""
   i = 0
+  result = []
   for section in pe.sections:
     if section.SizeOfRawData is not 0 and isSectionExecutable(section) and not isPacked(section):
-      result += section.get_data(ignore_padding=False)
+      code += section.get_data(ignore_padding=False)
       i += 1
-  print("I ma hodnotu ",i,sys.getsizeof(result))
+  # capstone disassembly 
+  md = Cs(CS_ARCH_X86, CS_MODE_64)
+  for i in md.disasm(code, 0x1000):
+      result.append([i.mnemonic, i.bytes])
+
   return result
 
 
@@ -108,6 +114,5 @@ def createObject(filename):
   
 # peelement = createObject('sample31')
 # print(peelement.getHash())
-print(makeHash('963d8cbbf9b8286b64219b5f3d445f912749deaa111b3a86912c596de36f9a35'))
 
 
