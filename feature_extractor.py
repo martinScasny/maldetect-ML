@@ -1,18 +1,21 @@
 from capstone import *
-import binascii
+import pe_parser
+import hashlib
 
 # INFO not certain if I need to store whole ins or stripped ins
 # TODO modify to store from jmp to jmp
 def getCallsDump(code):
+	jump_ins = ['jmp','jz','jnz','je','jne','jg','jge','jl','jle','ja','jae','jb','jbe','jcxz','jecxz','jrcxz']
 	call_dump = []
-	cur_call = []
+	md5 = hashlib.md5()
 	for ins in code:
 		ins_s = ins[0]
-		cur_call = []
-		if ins_s == 'jmp' or ins_s == 'jz':
-			call_dump.append(cur_call)
+		if ins_s in jump_ins:
+			call_dump.append(md5.hexdigest())
+			md5 = hashlib.md5()
 		else:
-			cur_call.append(ins_s)
+			md5.update(ins_s.encode('utf-8'))
+	  
 	return call_dump
 
       
@@ -83,3 +86,7 @@ def getNgram(filename,n):
 #     result.append([i.mnemonic,i.bytes])
 
 # print(result)
+peelement = pe_parser.createObject('Anti-malware-tool\\sample')
+code = peelement.getCode()
+print(getCallsDump(code))
+

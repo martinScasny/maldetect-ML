@@ -6,6 +6,7 @@ import math
 import re
 import hashlib
 
+
 # BUF_SIZE is totally arbitrary, change for your app!
 def makeHash(filename):
     BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
@@ -85,6 +86,15 @@ def extractStrings(filename):
   result = temp
   return result
 
+  """_tamperedSections
+  This method compares names of each section with the list of known names.
+  """
+def tamperedSections(pe) -> bool: 
+  knownSections = ['.text', '.data', '.rdata', '.idata', '.edata', '.rsrc', '.reloc']
+  for section in pe.sections:
+    if section.Name.decode() not in knownSections:
+      return True  
+  return False
 
 def extractImports(pe):
   res_imports = []
@@ -93,24 +103,27 @@ def extractImports(pe):
       res_imports.append(imp.name)
       
   for i in range(len(res_imports)):
-    res_imports[i] = res_imports[i].decode()
+    if res_imports[i] is not None:
+      res_imports[i] = res_imports[i].decode()
     
   return res_imports
 
 ##### CLASS #########################
 class Element_PE():
   def __init__(self,pe,filename):
-    self.code = extractCode(pe)
-    self.strings = extractStrings(filename)
-    self.imports = extractImports(pe)
-    self.hash = makeHash(filename)
-    self.packed = isBinPacked(pe)
+    self.__code = extractCode(pe)
+    self.__strings = extractStrings(filename)
+    self.__imports = extractImports(pe)
+    self.__hash = makeHash(filename)
+    self.__packed = isBinPacked(pe)
+    self.__tamperedSections = tamperedSections(pe)
     
-  def getCode(self): return self.code
-  def getStrings(self): return self.strings
-  def getImports(self): return self.imports
-  def getHash(self): return self.hash
-  def getPacked(self): return self.packed
+  def getCode(self): return self.__code
+  def getStrings(self): return self.__strings
+  def getImports(self): return self.__imports
+  def getHash(self): return self.__hash
+  def getPacked(self): return self.__packed
+  def getTampSections(self): return self.__tamperedSections
 ###############################
 
 
@@ -119,7 +132,6 @@ def createObject(filename):
   object = Element_PE(pe,filename)
   return object
   
-# peelement = createObject('sample31')
-# print(peelement.getHash())
+# peelement = createObject('Anti-malware-tool\\sample25.bin')
 
 
