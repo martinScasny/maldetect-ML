@@ -6,6 +6,55 @@ import math
 import re
 import hashlib
 
+list_of_imports = ['LoadLibrary',
+                   'ShellExecute',
+                   'GetProcAddress',
+                   'GetVersionEx',
+                   'GetModuleHandle',
+                   'OpenProcess',
+                   'GetWindowsDirectory',
+                   'WriteFile',
+                   'ReadFile',
+                   'GetFileSize',
+                   'CreateFile',
+                   'DeleteFile',
+                   'CreateProcess',
+                   'GetCurrentProcess',
+                   'RegOpenKeyEx',
+                   'GetStartupInfo',
+                   'CreateService',
+                   'CopyFile',
+                   'GetModuleFileName',
+                   'IsbadReadPtr'
+                   'SetFilePointer',
+                   'VirtualAlloc',
+                   'AdjustTokenPrivileges',
+                   'CloseHandle',
+                   'GetTempPath',
+                   'IsBadWritePtr',
+                   'UrlDownloadToFile',
+                   'WinExec',
+                   'GetCommandLine',
+                   'StartService',
+                   'VirtualProtect',
+                   'WriteProcessMemory',
+                   'HeapCreate',
+                   'MapViewOfFile',
+                   'CreateRemoteThread',
+                   'CreateToolhelp32Snapshot',
+                   'GetProcessHeap',
+                   'Sleep',
+                   ]
+
+#function that will iterate through entries and check wheter entry is in list_of_imports
+def filterImports(entries):
+    result = [0]*len(list_of_imports)
+    for entry in entries:
+      if entry != None:
+        for i in range(len(list_of_imports)):
+            if list_of_imports[i] in entry:
+                result[i] = 1
+    return result
 
 # BUF_SIZE is totally arbitrary, change for your app!
 def makeHash(filename):
@@ -98,15 +147,16 @@ def tamperedSections(pe) -> bool:
 
 def extractImports(pe):
   res_imports = []
-  for entry in pe.DIRECTORY_ENTRY_IMPORT:
-    for imp in entry.imports:
-      res_imports.append(imp.name)
-      
-  for i in range(len(res_imports)):
-    if res_imports[i] is not None:
-      res_imports[i] = res_imports[i].decode()
-    
-  return res_imports
+  if hasattr(pe, 'DIRECTORY_ENTRY_IMPORT'):
+    for entry in pe.DIRECTORY_ENTRY_IMPORT:
+      for imp in entry.imports:
+        res_imports.append(imp.name)
+        
+    for i in range(len(res_imports)):
+      if res_imports[i] is not None:
+        res_imports[i] = res_imports[i].decode()
+  
+  return filterImports(res_imports)
 
 ##### CLASS #########################
 class Element_PE():
@@ -132,6 +182,7 @@ def createObject(filename):
   object = Element_PE(pe,filename)
   return object
   
-# peelement = createObject('Anti-malware-tool\\sample25.bin')
+peelement = createObject('Anti-malware-tool\\sample')
+print(peelement.getImports())
 
 

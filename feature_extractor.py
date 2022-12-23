@@ -16,7 +16,7 @@ def getCallsDump(code):
 		else:
 			md5.update(ins_s.encode('utf-8'))
 	  
-	return call_dump
+	return selectDistinctNgram(call_dump)
 
       
 def getInstRatio(code):
@@ -37,7 +37,7 @@ def getInstRatio(code):
 		try:
 			sig_ins[ins[0]] += 1
 		except:
-			print("Could not find '",ins[0],"' instruction")
+			pass
 
 	a = [x/ins_count for x in list(sig_ins.values())]
 	b = list(sig_ins.keys())
@@ -86,7 +86,7 @@ def getNgram(filename,n):
 #     result.append([i.mnemonic,i.bytes])
 
 # print(result)
-peelement = pe_parser.createObject('Anti-malware-tool\\sample')
-code = peelement.getCode()
-print(getCallsDump(code))
+# peelement = pe_parser.createObject('Anti-malware-tool\\adware_lazy')
+# code = peelement.getCode()
+# print(getCallsDump(code))
 
