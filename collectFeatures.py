@@ -7,7 +7,7 @@ import numpy as np
 """collectNGrams(filepath,ngramSize,ngramCount)
 Collects ngram values from all files in the given directory and returns the ngramCount most common ngrams.
 """
-def collectNGrams(filepath,ngramSize,ngramCount):
+def collectTopNGrams(filepath,ngramSize,ngramCount):
     #TODO path to nsort.so
     path = r'C:\Users\Martin\Desktop\Anti-malware-tool\Anti-malware-tool\nsort.so'
     libObject = CDLL(path)
@@ -41,7 +41,7 @@ def collectNGrams(filepath,ngramSize,ngramCount):
 """collectCallsDump(filepath,count)
 This method will collect the most common calls from the given directory. It will return the <count> most common calls.
 """
-def collectCallsDump(filepath,count):
+def collectTopCallsDump(filepath,count):
     result = dict()
     for file in os.listdir(filepath):
         print('Collecting values from file:',file)
@@ -60,7 +60,35 @@ def collectCallsDump(filepath,count):
 Methods collectNGrams and collectCallsDumps have to be used with positive and negative samples separately. Then 
 collected features from positive samples will be removed from negative feature set.
 """
+
+
+def filterNGrams(file,posNgrams):
+    result = []
+    values = feature_extractor.getNgram(file,4)
+    result.append([x for x in values if x in posNgrams])
+    return result
+
+def filterCallsDump(code,posCalls):
+    result = []
+    callDump = feature_extractor.getCallsDump(code)
+    result.append([x for x in callDump if x in posCalls])
+    return result
+
+def collectFeatures(filePath,posNgrams,posCalls):
+    result = []
+    for file in os.listdir(filePath):
+        print('Collecting values from file:',file)
+        element = pe_parser.createObject(f"{filePath}\\{file}")
+        code = element.getCode()
+        imports = element.getImports()
+        tampered = element.getTampered()
+        packed = element.getPacked()
+        insRatio = feature_extractor.getInstRatio(code)
+        ngram = filterNGrams(feature_extractor.getNgram(code,4))
+        callsDump = filterCallsDump(feature_extractor.getCallsDump(code))
+        result.append([ngram,callsDump,insRatio,imports,tampered,packed])
 # topNGrams = collectNGrams('C:\\Users\\Martin\\Desktop\\Samples',4,50)
-print(collectCallsDump('C:\\Users\\Martin\\Desktop\\Samples',50))
+# print(collectCallsDump('C:\\Users\\Martin\\Desktop\\Samples',50))
+
 
 
