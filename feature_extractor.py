@@ -2,19 +2,21 @@ from capstone import *
 import pe_parser
 import hashlib
 
-# INFO not certain if I need to store whole ins or stripped ins
-# TODO modify to store from jmp to jmp
+
 def getCallsDump(code):
 	jump_ins = ['jmp','jz','jnz','je','jne','jg','jge','jl','jle','ja','jae','jb','jbe','jcxz','jecxz','jrcxz']
 	call_dump = []
 	md5 = hashlib.md5()
+	counter = 0
 	for ins in code:
 		ins_s = ins[0]
-		if ins_s in jump_ins:
+		if ins_s in jump_ins or counter > 49:
 			call_dump.append(md5.hexdigest())
 			md5 = hashlib.md5()
+			counter = 0
 		else:
 			md5.update(ins_s.encode('utf-8'))
+			counter += 1
 	  
 	return selectDistinctNgram(call_dump)
 

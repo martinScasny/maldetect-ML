@@ -181,8 +181,5 @@ def createObject(filename):
   pe = pefile.PE(filename)
   object = Element_PE(pe,filename)
   return object
-  
-peelement = createObject('Anti-malware-tool\\sample')
-print(peelement.getImports())
 
 

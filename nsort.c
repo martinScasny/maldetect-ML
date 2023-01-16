@@ -98,7 +98,7 @@ void push(PQUEUE* q, uint16_t priority, unsigned int id) {
     }
 }
 
-unsigned int** findNTopValues(int queueSize, uint16_t (*arr)[], unsigned int n) {
+unsigned int** findNTopValues(int queueSize, uint16_t *arr, unsigned int n) {
     unsigned int **result = calloc(sizeof(unsigned int*),queueSize);
     for (int i = 0; i < queueSize; i++)
     {
@@ -112,8 +112,8 @@ unsigned int** findNTopValues(int queueSize, uint16_t (*arr)[], unsigned int n) 
     q->maxLen = queueSize;
     q->items = calloc(sizeof(ITEM*),q->maxLen+1);
 
-    for(unsigned int i = 0; i < n; i++) {
-        push(q,(*arr)[i],i);
+    for(unsigned long long i = 0; i <= n; i++) {
+        push(q,arr[i],i);
         // qPrintItems(q);
     }
     
@@ -132,21 +132,38 @@ unsigned int** findNTopValues(int queueSize, uint16_t (*arr)[], unsigned int n) 
 
     return result;
 }
-
 // int main(char** argv,int argc) {
-//     printf("som tu");
+//     int queueLen = 10;
 //     unsigned int n = 4294967295;
-//     int queueLen = 2000;
-//     printf("som tu");
-//     uint16_t (* arr)[n] = malloc(sizeof(uint16_t)*(unsigned long long)(n+1));
+//     char* directory = "C:\\Users\\Martin\\Desktop\\mysamples\\binary_gen\\binary_gen\\testfiles\\";
+//     uint16_t *frequency = calloc(sizeof(uint16_t), n);
 //     unsigned int** result = NULL;
-//     for(unsigned int i = 0; i < n; i++) {
-//         // printf("%u\n",i);
-//         (*arr)[i] = rand()%n;
-//     }
 
-//     result = findNTopValues(queueLen,arr,n);
-//     free(arr);
+//     for (int i = 0; i < 100; i++) {
+//         char filepath[100];
+//         sprintf(filepath,"%sfile%d.bin",directory,i);
+//         FILE *file = fopen(filepath, "rb");
+//         if (file == NULL) {
+//             printf("Error opening file %s",filepath);
+//         }
+
+//         fseek(file, 0, SEEK_END);
+//         int size = ftell(file);
+//         rewind(file);
+
+//         char *buffer = (char*)malloc(size);
+//         fread(buffer, size, 1, file);
+//         fclose(file);
+
+//         for (int i = 0; i <= size - 1; i += 4) {
+//             unsigned int number = *(unsigned int*)(buffer + i);
+//             printf("number is %d\n",number);
+//             frequency[number]++;
+//         }
+//         free(buffer);
+//         }
+
+//     result = findNTopValues(queueLen,frequency,n);
 //     for (unsigned int i = 0; i < queueLen; i++)
 //     {
 //         printf("%d\n",(*result[i]));

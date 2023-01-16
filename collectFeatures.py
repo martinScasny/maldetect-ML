@@ -36,7 +36,7 @@ def collectTopNGrams(filepath,ngramSize,ngramCount):
     for x in range(ngramCount):
         result.append(ntopValues[x].contents.value)
     
-    return result
+    return set(result)
 
 """collectCallsDump(filepath,count)
 This method will collect the most common calls from the given directory. It will return the <count> most common calls.
@@ -53,7 +53,7 @@ def collectTopCallsDump(filepath,count):
             else:
                 result.append(x,1)
                 
-    return sorted(result.items(), key=lambda x: x[1], reverse=True)[:count]
+    return set(sorted(result.items(), key=lambda x: x[1], reverse=True)[:count])
         
     
 """method
@@ -74,21 +74,32 @@ def filterCallsDump(code,posCalls):
     result.append([x for x in callDump if x in posCalls])
     return result
 
-def collectFeatures(filePath,posNgrams,posCalls):
+def collectFeatures(filePath, posNgrams, posCalls):
     result = []
     for file in os.listdir(filePath):
         print('Collecting values from file:',file)
         element = pe_parser.createObject(f"{filePath}\\{file}")
         code = element.getCode()
         imports = element.getImports()
-        tampered = element.getTampered()
+        tampered = element.getTampSections()
         packed = element.getPacked()
         insRatio = feature_extractor.getInstRatio(code)
-        ngram = filterNGrams(feature_extractor.getNgram(code,4))
-        callsDump = filterCallsDump(feature_extractor.getCallsDump(code))
-        result.append([ngram,callsDump,insRatio,imports,tampered,packed])
-# topNGrams = collectNGrams('C:\\Users\\Martin\\Desktop\\Samples',4,50)
-# print(collectCallsDump('C:\\Users\\Martin\\Desktop\\Samples',50))
+        ngram = filterNGrams(feature_extractor.getNgram(filePath,4),posNgrams)
+        callsDump = filterCallsDump(feature_extractor.getCallsDump(code,posCalls))
+        result.append([ngram,callsDump,insRatio,imports,tampered,packed])       
+    return result
 
+def collectFeaturesSingleFile(filePath, posNgrams, posCalls) -> list:
+    result = []
+    element = pe_parser.createObject(filePath)
+    code = element.getCode()
+    imports = element.getImports()
+    tampered = element.getTampSections()
+    packed = element.getPacked()
+    insRatio = feature_extractor.getInstRatio(code)
+    ngram = filterNGrams(feature_extractor.getNgram(filePath,4),posNgrams)
+    callsDump = filterCallsDump(feature_extractor.getCallsDump(code,posCalls))
+    result.append([ngram,callsDump,insRatio,imports,tampered,packed])
+    return result
 
 
