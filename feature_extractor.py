@@ -8,6 +8,8 @@ def getCallsDump(code):
 	call_dump = []
 	md5 = hashlib.md5()
 	counter = 0
+	if code == None:
+		return None
 	for ins in code:
 		ins_s = ins[0]
 		if ins_s in jump_ins or counter > 49:
@@ -17,8 +19,26 @@ def getCallsDump(code):
 		else:
 			md5.update(ins_s.encode('utf-8'))
 			counter += 1
-	  
+	call_dump.append(md5.hexdigest())
+	if len(call_dump) == 0:
+		return None
 	return selectDistinctNgram(call_dump)
+
+# def testGetCallsDump(code):
+# 	jump_ins = ['jmp','jz','jnz','je','jne','jg','jge','jl','jle','ja','jae','jb','jbe','jcxz','jecxz','jrcxz']
+# 	call_dump = []
+# 	call = ""
+# 	counter = 0
+# 	for ins in code:
+# 		if ins in jump_ins or counter > 49:
+# 			call_dump.append(call)
+# 			call = ""
+# 			counter = 0
+# 		else:
+# 			call += ins
+# 			counter += 1
+	  
+# 	return selectDistinctNgram(call_dump)
 
       
 def getInstRatio(code):
@@ -40,12 +60,14 @@ def getInstRatio(code):
 			sig_ins[ins[0]] += 1
 		except:
 			pass
+	if ins_count == 0:
+		return [value for value in list(sig_ins.values())]
 
 	a = [x/ins_count for x in list(sig_ins.values())]
 	b = list(sig_ins.keys())
 	sig_ins = dict(map(lambda i,j : (i,j) , b,a))
 	
-	return sig_ins
+	return [value for value in list(sig_ins.values())]
 
 def selectDistinctNgram(arr):
     result = set()
@@ -79,8 +101,6 @@ def getNgram(filename,n):
 
 				
 # print(len(getNgram('sample31',4)))
-
-
 # CODE = b"\x55\x48\x8b\x05\xb8\x13\x00\x00"
 # result = []
 # md = Cs(CS_ARCH_X86, CS_MODE_64)

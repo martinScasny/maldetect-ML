@@ -117,6 +117,7 @@ def extractCode(pe):
 
 
 def extractStrings(filename):
+  print("Extracting strings...")
   result = []
   file = open(filename, 'rb')
   inbytes = file.read()
@@ -141,8 +142,11 @@ def extractStrings(filename):
 def tamperedSections(pe) -> bool: 
   knownSections = ['.text', '.data', '.rdata', '.idata', '.edata', '.rsrc', '.reloc']
   for section in pe.sections:
-    if section.Name.decode() not in knownSections:
-      return True  
+    try:
+      if section.Name.decode() not in knownSections:
+        return True
+    except:
+      return False
   return False
 
 def extractImports(pe):
@@ -162,14 +166,14 @@ def extractImports(pe):
 class Element_PE():
   def __init__(self,pe,filename):
     self.__code = extractCode(pe)
-    self.__strings = extractStrings(filename)
+    self.__filename = filename
     self.__imports = extractImports(pe)
     self.__hash = makeHash(filename)
     self.__packed = isBinPacked(pe)
     self.__tamperedSections = tamperedSections(pe)
     
   def getCode(self): return self.__code
-  def getStrings(self): return self.__strings
+  def getStrings(self): return extractStrings(self.__filename)
   def getImports(self): return self.__imports
   def getHash(self): return self.__hash
   def getPacked(self): return self.__packed
@@ -181,5 +185,3 @@ def createObject(filename):
   pe = pefile.PE(filename)
   object = Element_PE(pe,filename)
   return object
-
-

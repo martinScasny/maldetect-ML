@@ -2,7 +2,7 @@ import feature_extractor
 import pe_parser
 import os
 from ctypes import *
-import numpy as np
+import pandas as pd
 
 """collectNGrams(filepath,ngramSize,ngramCount)
 Collects ngram values from all files in the given directory and returns the ngramCount most common ngrams.
@@ -47,13 +47,30 @@ def collectTopCallsDump(filepath,count):
         print('Collecting values from file:',file)
         element = pe_parser.createObject(f"{filepath}\\{file}")
         callDump = feature_extractor.getCallsDump(element.getCode())
+        if callDump == None:
+            continue
         for x in callDump:
             if x in result:
                 result[x] += 1
             else:
-                result.append(x,1)
+                result[x] = 1
                 
-    return set(sorted(result.items(), key=lambda x: x[1], reverse=True)[:count])
+    # return set(sorted(result.items(), key=lambda x: x[1], reverse=True)[:count])
+    return set([key for key, value in sorted(result.items(), key=lambda x: x[1], reverse=True)[:count]])
+
+# def testCollectTopCallsDump(filepath,count):
+#     result = dict()
+#     for file in os.listdir(filepath):
+#         print('Collecting values from file:',file)
+#         f = open(f"{filepath}\\{file}")
+#         callDump = feature_extractor.testGetCallsDump(f.read().split("\n"))
+#         for x in callDump:
+#             if x in result:
+#                 result[x] += 1
+#             else:
+#                 result[x] = 1
+                
+#     return set(sorted(result.items(), key=lambda x: x[1], reverse=True)[:count])
         
     
 """method
@@ -63,16 +80,20 @@ collected features from positive samples will be removed from negative feature s
 
 
 def filterNGrams(file,posNgrams):
-    result = []
+    result = [0] * len(posNgrams)
     values = feature_extractor.getNgram(file,4)
-    result.append([x for x in values if x in posNgrams])
-    return result
+    intersection = set(posNgrams).intersection(set(values))
+    for i in intersection:
+        result[posNgrams.index(i)] = 1
+    return result #TODO test
 
 def filterCallsDump(code,posCalls):
-    result = []
+    result = [0] * len(posCalls)
     callDump = feature_extractor.getCallsDump(code)
-    result.append([x for x in callDump if x in posCalls])
-    return result
+    intersection = set(posCalls).intersection(set(callDump))
+    for i in intersection:
+        result[posCalls.index(i)] = 1
+    return result #TODO test
 
 def collectFeatures(filePath, posNgrams, posCalls):
     result = []
@@ -102,4 +123,70 @@ def collectFeaturesSingleFile(filePath, posNgrams, posCalls) -> list:
     result.append([ngram,callsDump,insRatio,imports,tampered,packed])
     return result
 
+def collectBaseFeatures(filePath):
+    result = []
+    for file in os.listdir(filePath):
+        print('Collecting values from file:',file)
+        element = pe_parser.createObject(f"{filePath}\\{file}")
+        code = element.getCode()
+        imports = element.getImports()
+        tampered = element.getTampSections()
+        packed = element.getPacked()
+        insRatio = feature_extractor.getInstRatio(code)
+        result.append([insRatio,imports,tampered,packed])       
+    return result
 
+def transformToDataSet(folders):
+    listNG = []
+    listCD = []
+    listIR = []
+    listIM = []
+    listOH = []
+    listVL = []
+    
+    topCalls = pd.read_csv("posCalls.csv",delimiter=";")
+    topNgrams = pd.read_csv("posNgrams.csv",delimiter=";")
+    filesFlag = 0
+    for filepath in folders:
+        for file in os.listdir(filepath):
+            print('Collecting values from file:',file)
+            path = f"{filepath}\\{file}"
+            element = pe_parser.createObject(path)
+            code = element.getCode()
+            imports = element.getImports()
+            tampered = element.getTampSections()
+            packed = element.getPacked()
+            insRatio = feature_extractor.getInstRatio(code)
+            ngram = filterNGrams(path,topNgrams)
+            callsDump = filterCallsDump(code,topCalls)
+            
+            listNG.append(ngram)
+            listCD.append(callsDump)
+            listIR.append(insRatio)
+            listIM.append(imports)
+            listOH.append([int(tampered),int(packed)])
+            if filesFlag:
+                listVL.append([1])
+            else:
+                listVL.append([0])
+        filesFlag = 1
+    pd.DataFrame(listNG).to_csv("train_ngram.csv",index=False,header=False)
+    pd.DataFrame(listCD).to_csv("train_calls.csv",index=False,header=False)
+    pd.DataFrame(listIR).to_csv("train_inst.csv",index=False,header=False)
+    pd.DataFrame(listIM).to_csv("train_imports.csv",index=False,header=False)
+    pd.DataFrame(listOH).to_csv("train_oh.csv",index=False,header=False)
+            
+# i = 0
+# for file in os.listdir(filepath):
+#     print('Collecting values from file:',file)
+#     element = pe_parser.createObject(f"{filepath}\\{file}")
+#     code = element.getCode()
+#     file = open(f"code{i}","w")
+#     result = ""
+#     for item in code:
+#         result += str(item)
+#     file.write(result)
+#     file.close()
+#     if i > 10:
+#         break
+#     i += 1
