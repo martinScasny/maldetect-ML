@@ -44,6 +44,21 @@ list_of_imports = ['LoadLibrary',
                    'CreateToolhelp32Snapshot',
                    'GetProcessHeap',
                    'Sleep',
+                   'ZwCreateFile',
+                   'RtlCreateHeap',
+                   'ZwUnmapViewOfSection',
+                   'ZwCreateProcess',
+                   'ZwCreateThread',
+                   'ZwcreateUserProcess',
+                   'RtlAddVectoredExceptionHandler',
+                   'ZwAllocateVirtualMemory',
+                   'LdrHotPatchRoutine',
+                   'ZwWriteVirtualMemory',
+                   'ZwMapViewOfSection',
+                   'ZwCreateSection',
+                   'ZwCreateProcessEx',
+                   'LdrLoadDll',
+                   'ZwProtectVirtualMemory',
                    ]
 
 #function that will iterate through entries and check wheter entry is in list_of_imports
@@ -141,13 +156,16 @@ def extractStrings(filename):
   """
 def tamperedSections(pe) -> bool: 
   knownSections = ['.text', '.data', '.rdata', '.idata', '.edata', '.rsrc', '.reloc']
+  # cut trailing zeros from binary data b'.text\x00\x00\x00', that is stored in section.Name
   for section in pe.sections:
     try:
-      if section.Name.decode() not in knownSections:
+      if section.Name.decode().split('\x00')[0] not in knownSections:
         return True
     except:
       return False
   return False
+
+
 
 def extractImports(pe):
   res_imports = []

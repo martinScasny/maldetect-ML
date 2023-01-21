@@ -136,7 +136,7 @@ def collectBaseFeatures(filePath):
         result.append([insRatio,imports,tampered,packed])       
     return result
 
-def transformToDataSet(folders):
+def transformToDataSet(folders,destFolder):
     listNG = []
     listCD = []
     listIR = []
@@ -144,8 +144,8 @@ def transformToDataSet(folders):
     listOH = []
     listVL = []
     
-    topCalls = pd.read_csv("posCalls.csv",delimiter=";")
-    topNgrams = pd.read_csv("posNgrams.csv",delimiter=";")
+    topNgrams = list(map(int,pd.read_csv("Anti-malware-tool/posNgrams.csv",delimiter=";").columns.tolist()))
+    topCalls = pd.read_csv("Anti-malware-tool/posCalls.csv",delimiter=";").columns.tolist()
     filesFlag = 0
     for filepath in folders:
         for file in os.listdir(filepath):
@@ -170,23 +170,13 @@ def transformToDataSet(folders):
             else:
                 listVL.append([0])
         filesFlag = 1
-    pd.DataFrame(listNG).to_csv("train_ngram.csv",index=False,header=False)
-    pd.DataFrame(listCD).to_csv("train_calls.csv",index=False,header=False)
-    pd.DataFrame(listIR).to_csv("train_inst.csv",index=False,header=False)
-    pd.DataFrame(listIM).to_csv("train_imports.csv",index=False,header=False)
-    pd.DataFrame(listOH).to_csv("train_oh.csv",index=False,header=False)
-            
-# i = 0
-# for file in os.listdir(filepath):
-#     print('Collecting values from file:',file)
-#     element = pe_parser.createObject(f"{filepath}\\{file}")
-#     code = element.getCode()
-#     file = open(f"code{i}","w")
-#     result = ""
-#     for item in code:
-#         result += str(item)
-#     file.write(result)
-#     file.close()
-#     if i > 10:
-#         break
-#     i += 1
+    pd.DataFrame(listNG).to_csv(f"{destFolder}/ngram.csv",index=False,header=False)
+    pd.DataFrame(listCD).to_csv(f"{destFolder}/calls.csv",index=False,header=False)
+    pd.DataFrame(listIR).to_csv(f"{destFolder}/inst.csv",index=False,header=False)
+    pd.DataFrame(listIM).to_csv(f"{destFolder}/imports.csv",index=False,header=False)
+    pd.DataFrame(listOH).to_csv(f"{destFolder}/other.csv",index=False,header=False)
+    pd.DataFrame(listVL).to_csv(f"{destFolder}/val.csv",index=False,header=False)
+ 
+ 
+transformToDataSet([r"C:\Users\Martin\Desktop\negativeSamples",r"C:\Users\Martin\Desktop\pos_samples\Win32_EXE2021\train_data"],"train_data")  
+

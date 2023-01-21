@@ -44,7 +44,7 @@ if __name__ == '__main__':
     inputInsRatio = tf.keras.layers.Input(shape=(9,))
     inputInsRatio = tf.keras.layers.Dense(32, activation='relu')(inputInsRatio)
     inputInsRatio = tf.keras.layers.Dense(1, activation='softmax')(inputInsRatio)
-    model = tf.keras.layers.Input(shape=((37+1+1),))
+    model = tf.keras.layers.Input(shape=((52+1+1),))
     model = tf.keras.layers.concatenate([inputNgram,inputCalls,inputInsRatio,model])
     model = tf.keras.layers.Dense(64, activation='relu')(model)
     model = tf.keras.layers.Dense(2, activation='softmax')(model)
