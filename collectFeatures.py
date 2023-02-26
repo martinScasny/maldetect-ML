@@ -3,6 +3,7 @@ import pe_parser
 import os
 from ctypes import *
 import pandas as pd
+import csv
 
 """collectNGrams(filepath,ngramSize,ngramCount)
 Collects ngram values from all files in the given directory and returns the ngramCount most common ngrams.
@@ -87,6 +88,7 @@ def filterNGrams(file,posNgrams):
         result[posNgrams.index(i)] = 1
     return result #TODO test
 
+
 def filterCallsDump(code,posCalls):
     result = [0] * len(posCalls)
     callDump = feature_extractor.getCallsDump(code)
@@ -95,22 +97,7 @@ def filterCallsDump(code,posCalls):
         result[posCalls.index(i)] = 1
     return result #TODO test
 
-def collectFeatures(filePath, posNgrams, posCalls):
-    result = []
-    for file in os.listdir(filePath):
-        print('Collecting values from file:',file)
-        element = pe_parser.createObject(f"{filePath}\\{file}")
-        code = element.getCode()
-        imports = element.getImports()
-        tampered = element.getTampSections()
-        packed = element.getPacked()
-        insRatio = feature_extractor.getInstRatio(code)
-        ngram = filterNGrams(feature_extractor.getNgram(filePath,4),posNgrams)
-        callsDump = filterCallsDump(feature_extractor.getCallsDump(code,posCalls))
-        result.append([ngram,callsDump,insRatio,imports,tampered,packed])       
-    return result
-
-def collectFeaturesSingleFile(filePath, posNgrams, posCalls) -> list:
+def collectFeaturesFromFile(filePath, posNgrams, posCalls) -> list:
     result = []
     element = pe_parser.createObject(filePath)
     code = element.getCode()
@@ -118,22 +105,13 @@ def collectFeaturesSingleFile(filePath, posNgrams, posCalls) -> list:
     tampered = element.getTampSections()
     packed = element.getPacked()
     insRatio = feature_extractor.getInstRatio(code)
-    ngram = filterNGrams(feature_extractor.getNgram(filePath,4),posNgrams)
-    callsDump = filterCallsDump(feature_extractor.getCallsDump(code,posCalls))
-    result.append([ngram,callsDump,insRatio,imports,tampered,packed])
-    return result
-
-def collectBaseFeatures(filePath):
-    result = []
-    for file in os.listdir(filePath):
-        print('Collecting values from file:',file)
-        element = pe_parser.createObject(f"{filePath}\\{file}")
-        code = element.getCode()
-        imports = element.getImports()
-        tampered = element.getTampSections()
-        packed = element.getPacked()
-        insRatio = feature_extractor.getInstRatio(code)
-        result.append([insRatio,imports,tampered,packed])       
+    ngram = filterNGrams(filePath, posNgrams)
+    callsDump = filterCallsDump(code, posCalls)
+    result.append([pd.DataFrame(ngram).transpose(),
+                   pd.DataFrame(callsDump).transpose(),
+                   pd.DataFrame(insRatio).transpose(),
+                   pd.DataFrame(imports).transpose(),
+                   pd.DataFrame([tampered,packed]).transpose()])
     return result
 
 def transformToDataSet(folders,destFolder):
@@ -143,15 +121,21 @@ def transformToDataSet(folders,destFolder):
     listIM = []
     listOH = []
     listVL = []
-    
-    topNgrams = list(map(int,pd.read_csv("Anti-malware-tool/posNgrams.csv",delimiter=";").columns.tolist()))
-    topCalls = pd.read_csv("Anti-malware-tool/posCalls.csv",delimiter=";").columns.tolist()
-    filesFlag = 0
+    counter = 0
+
+    topNgrams = list(map(int,pd.read_csv("topFeatures/posGrams.csv",delimiter=";").columns.tolist()))
+    topCalls = pd.read_csv("topFeatures/posCalls.csv",delimiter=";").columns.tolist()
+    filesFlag = 1
     for filepath in folders:
         for file in os.listdir(filepath):
+            print(f"{counter/55702 * 100}%")
             print('Collecting values from file:',file)
             path = f"{filepath}\\{file}"
-            element = pe_parser.createObject(path)
+            try:
+                element = pe_parser.createObject(path)
+            except:
+                print("Invalid NT header skipping file")
+                continue
             code = element.getCode()
             imports = element.getImports()
             tampered = element.getTampSections()
@@ -169,6 +153,7 @@ def transformToDataSet(folders,destFolder):
                 listVL.append([1])
             else:
                 listVL.append([0])
+            counter += 1
         filesFlag = 1
     pd.DataFrame(listNG).to_csv(f"{destFolder}/ngram.csv",index=False,header=False)
     pd.DataFrame(listCD).to_csv(f"{destFolder}/calls.csv",index=False,header=False)
@@ -177,6 +162,40 @@ def transformToDataSet(folders,destFolder):
     pd.DataFrame(listOH).to_csv(f"{destFolder}/other.csv",index=False,header=False)
     pd.DataFrame(listVL).to_csv(f"{destFolder}/val.csv",index=False,header=False)
  
- 
-transformToDataSet([r"C:\Users\Martin\Desktop\negativeSamples",r"C:\Users\Martin\Desktop\pos_samples\Win32_EXE2021\train_data"],"train_data")  
+# pathToPositiveSamples = r'C:\Users\Martin\Desktop\Samples\Positives'
+# pathToNegativeSamples = r'C:\Users\Martin\Desktop\Samples\Negatives'
+# transformToDataSet([pathToNegativeSamples,pathToPositiveSamples],"train_data2")
 
+# posNgrams = collectTopNGrams(pathToPositiveSamples,4,10000) - collectTopNGrams(pathToNegativeSamples,4,10000)
+# posCalls = collectTopNGrams(pathToPositiveSamples,4,10000)
+# negCalls = collectTopNGrams(pathToNegativeSamples,4,10000)
+# print(len(posCalls),len(negCalls))
+# calls = posCalls - negCalls
+# print(len(calls))
+
+# output_file = open(r'posGrams.csv','w')
+# result = ""
+# for item in posCalls:
+#     result += str(item)
+#     result += ";"
+# result = result[:-1]
+# output_file.write(result)
+# output_file.close()
+
+# output_file = open(r'negGrams.csv','w')
+# result = ""
+# for item in negCalls:
+#     result += str(item)
+#     result += ";"
+# result = result[:-1]
+# output_file.write(result)
+# output_file.close()
+
+# output_file = open(r'uniGrams.csv','w')
+# result = ""
+# for item in calls:
+#     result += str(item)
+#     result += ";"
+# result = result[:-1]
+# output_file.write(result)
+# output_file.close()

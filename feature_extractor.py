@@ -40,19 +40,65 @@ def getCallsDump(code):
 	  
 # 	return selectDistinctNgram(call_dump)
 
+# POPAD, PUSHAD, JE, JC, LOOP, INT, JAE, CWD, LODSB,
+# JNE, IRET, PUSHA, JNC, POPA, STI, CLI, LEAVE, STD, CMC, BTR, BT, SETO,
+# CLC, MOVSB, FNINIT, FBSTP, BTS, FNSTCW, FLDCW, CLD, ADC, STOSD, INSD,
+# LDS, REPNE, AAD, FFREE, IN, XCHG, WAIT, JNS, FCLEX, OUTSD, OUT, SAHF,
+# AAA, FRNDINT, SETNLE, DAA, SETNBE
       
 def getInstRatio(code):
 	sig_ins = {
-				'popad':0,
-				'pushad':0,
-				'je':0,
-				'jc':0,
-				'int':0,
-				'jae':0,
-				'cwd':0,
-				'lodsb':0,
-				'jne':0
-				}
+    'popad':0,
+    'pushad':0,
+    'je':0,
+    'jc':0,
+    'loop':0,
+    'int':0,
+    'jae':0,
+    'cwd':0,
+    'lodsb':0,
+    'jne':0,
+    'iret':0,
+    'pusha':0,
+    'jnc':0,
+    'popa':0,
+    'sti':0,
+    'cli':0,
+    'leave':0,
+    'std':0,
+    'cmc':0,
+    'btr':0,
+    'bt':0,
+    'seto':0,
+    'clc':0,
+    'movsb':0,
+    'fninit':0,
+    'fbstp':0,
+    'bts':0,
+    'fnstcw':0,
+    'fldcw':0,
+    'cld':0,
+    'adc':0,
+    'stosd':0,
+    'insd':0,
+    'lds':0,
+    'repne':0,
+    'aad':0,
+    'ffree':0,
+    'in':0,
+    'xchg':0,
+    'wait':0,
+    'jns':0,
+    'fclex':0,
+    'outsd':0,
+    'out':0,
+    'sahf':0,
+    'aaa':0,
+    'frndint':0,
+    'setnle':0,
+    'daa':0,
+    'setnbe':0,
+	}
 	ins_count = 0
 	for ins in code:
 		ins_count += 1
@@ -100,7 +146,6 @@ def getNgram(filename,n):
     return selectDistinctNgram(result)
 
 				
-# print(len(getNgram('sample31',4)))
 # CODE = b"\x55\x48\x8b\x05\xb8\x13\x00\x00"
 # result = []
 # md = Cs(CS_ARCH_X86, CS_MODE_64)

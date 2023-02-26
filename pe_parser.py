@@ -104,9 +104,7 @@ def isSectionPacked(section):
   entropy = 0
   for x in sum:
     if x > 0:
-      entropy +=  x/length * math.log(1/(x/length),2) 
-  
-  print("Entropia pre sekciu",section.Name,"je",entropy)
+      entropy +=  x/length * math.log(1/(x/length),2)  
   return entropy > 7.2
 
 def isBinPacked(pe):
