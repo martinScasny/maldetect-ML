@@ -1,10 +1,10 @@
-from fileinput import close
 from capstone import *
 import pefile
-import sys
 import math
 import re
 import hashlib
+import os
+import csv
 
 list_of_imports = ['LoadLibrary',
                    'ShellExecute',
@@ -61,8 +61,8 @@ list_of_imports = ['LoadLibrary',
                    'ZwProtectVirtualMemory',
                    ]
 
-#function that will iterate through entries and check wheter entry is in list_of_imports
 def filterImports(entries):
+    '''function that will iterate through entries and check whether entry is in list_of_imports'''
     result = [0]*len(list_of_imports)
     for entry in entries:
       if entry != None:
@@ -71,7 +71,6 @@ def filterImports(entries):
                 result[i] = 1
     return result
 
-# BUF_SIZE is totally arbitrary, change for your app!
 def makeHash(filename):
     BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
 
@@ -119,6 +118,21 @@ def extractCode(pe):
   result = []
   for section in pe.sections:
     if section.SizeOfRawData != 0 and isSectionExecutable(section) and not isSectionPacked(section):
+      code += section.get_data(ignore_padding=False)
+      i += 1
+  # capstone disassembly 
+  md = Cs(CS_ARCH_X86, CS_MODE_64)
+  for i in md.disasm(code, 0x1000):
+      result.append([i.mnemonic, i.bytes])
+
+  return result
+
+def extractCodeNew(pe):
+  code = b""
+  i = 0
+  result = []
+  for section in pe.sections:
+    if section.SizeOfRawData != 0 :
       code += section.get_data(ignore_padding=False)
       i += 1
   # capstone disassembly 
@@ -181,7 +195,7 @@ def extractImports(pe):
 ##### CLASS #########################
 class Element_PE():
   def __init__(self,pe,filename):
-    self.__code = extractCode(pe)
+    self.__code = extractCodeNew(pe)
     self.__filename = filename
     self.__imports = extractImports(pe)
     self.__hash = makeHash(filename)
@@ -189,9 +203,8 @@ class Element_PE():
     self.__tamperedSections = tamperedSections(pe)
     
   def getCode(self): return self.__code
-  def getStrings(self): return extractStrings(self.__filename)
   def getImports(self): return self.__imports
-  def getHash(self): return self.__hash
+  def getHash(self): return self.__hash 
   def getPacked(self): return self.__packed
   def getTampSections(self): return self.__tamperedSections
 ###############################

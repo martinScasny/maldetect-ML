@@ -3,7 +3,6 @@ import pe_parser
 import os
 from ctypes import *
 import pandas as pd
-import csv
 
 """collectNGrams(filepath,ngramSize,ngramCount)
 Collects ngram values from all files in the given directory and returns the ngramCount most common ngrams.
@@ -46,33 +45,19 @@ def collectTopCallsDump(filepath,count):
     result = dict()
     for file in os.listdir(filepath):
         print('Collecting values from file:',file)
-        element = pe_parser.createObject(f"{filepath}\\{file}")
-        callDump = feature_extractor.getCallsDump(element.getCode())
+        try:
+            element = pe_parser.createObject(f"{filepath}\\{file}")
+            callDump = feature_extractor.getCallsDump(element.getCode())
+        except:
+            continue
         if callDump == None:
             continue
         for x in callDump:
             if x in result:
                 result[x] += 1
             else:
-                result[x] = 1
-                
-    # return set(sorted(result.items(), key=lambda x: x[1], reverse=True)[:count])
+                result[x] = 1                
     return set([key for key, value in sorted(result.items(), key=lambda x: x[1], reverse=True)[:count]])
-
-# def testCollectTopCallsDump(filepath,count):
-#     result = dict()
-#     for file in os.listdir(filepath):
-#         print('Collecting values from file:',file)
-#         f = open(f"{filepath}\\{file}")
-#         callDump = feature_extractor.testGetCallsDump(f.read().split("\n"))
-#         for x in callDump:
-#             if x in result:
-#                 result[x] += 1
-#             else:
-#                 result[x] = 1
-                
-#     return set(sorted(result.items(), key=lambda x: x[1], reverse=True)[:count])
-        
     
 """method
 Methods collectNGrams and collectCallsDumps have to be used with positive and negative samples separately. Then 
@@ -82,11 +67,11 @@ collected features from positive samples will be removed from negative feature s
 
 def filterNGrams(file,posNgrams):
     result = [0] * len(posNgrams)
-    values = feature_extractor.getNgram(file,4)
+    values = feature_extractor.getNgramC(file,4)
     intersection = set(posNgrams).intersection(set(values))
     for i in intersection:
         result[posNgrams.index(i)] = 1
-    return result #TODO test
+    return result
 
 
 def filterCallsDump(code,posCalls):
@@ -95,7 +80,7 @@ def filterCallsDump(code,posCalls):
     intersection = set(posCalls).intersection(set(callDump))
     for i in intersection:
         result[posCalls.index(i)] = 1
-    return result #TODO test
+    return result
 
 def collectFeaturesFromFile(filePath, posNgrams, posCalls) -> list:
     result = []
@@ -112,19 +97,19 @@ def collectFeaturesFromFile(filePath, posNgrams, posCalls) -> list:
                    pd.DataFrame(insRatio).transpose(),
                    pd.DataFrame(imports).transpose(),
                    pd.DataFrame([tampered,packed]).transpose()])
-    return result
+    return result, element.getHash()
 
 def transformToDataSet(folders,destFolder):
-    listNG = []
-    listCD = []
+    # listNG = []
+    listCDp = []
     listIR = []
     listIM = []
     listOH = []
     listVL = []
     counter = 0
 
-    topNgrams = list(map(int,pd.read_csv("topFeatures/posGrams.csv",delimiter=";").columns.tolist()))
-    topCalls = pd.read_csv("topFeatures/posCalls.csv",delimiter=";").columns.tolist()
+    # topNgrams = list(map(int,pd.read_csv("Anti-malware-tool/topFeatures/posGrams.csv",delimiter=";").columns.tolist()))
+    posCalls = pd.read_csv("Anti-malware-tool/topFeatures/posCalls.csv",delimiter=";").columns.tolist()
     filesFlag = 1
     for filepath in folders:
         for file in os.listdir(filepath):
@@ -141,11 +126,11 @@ def transformToDataSet(folders,destFolder):
             tampered = element.getTampSections()
             packed = element.getPacked()
             insRatio = feature_extractor.getInstRatio(code)
-            ngram = filterNGrams(path,topNgrams)
-            callsDump = filterCallsDump(code,topCalls)
+            # ngram = filterNGrams(path,topNgrams)
+            callsDumpP = filterCallsDump(code,posCalls)
             
-            listNG.append(ngram)
-            listCD.append(callsDump)
+            # listNG.append(ngram)
+            listCDp.append(callsDumpP)
             listIR.append(insRatio)
             listIM.append(imports)
             listOH.append([int(tampered),int(packed)])
@@ -155,25 +140,26 @@ def transformToDataSet(folders,destFolder):
                 listVL.append([0])
             counter += 1
         filesFlag = 1
-    pd.DataFrame(listNG).to_csv(f"{destFolder}/ngram.csv",index=False,header=False)
-    pd.DataFrame(listCD).to_csv(f"{destFolder}/calls.csv",index=False,header=False)
+    # pd.DataFrame(listNG).to_csv(f"{destFolder}/ngram.csv",index=False,header=False)
+    pd.DataFrame(listCDp).to_csv(f"{destFolder}/callsPos.csv",index=False,header=False)
     pd.DataFrame(listIR).to_csv(f"{destFolder}/inst.csv",index=False,header=False)
     pd.DataFrame(listIM).to_csv(f"{destFolder}/imports.csv",index=False,header=False)
     pd.DataFrame(listOH).to_csv(f"{destFolder}/other.csv",index=False,header=False)
     pd.DataFrame(listVL).to_csv(f"{destFolder}/val.csv",index=False,header=False)
  
+
 # pathToPositiveSamples = r'C:\Users\Martin\Desktop\Samples\Positives'
 # pathToNegativeSamples = r'C:\Users\Martin\Desktop\Samples\Negatives'
-# transformToDataSet([pathToNegativeSamples,pathToPositiveSamples],"train_data2")
+# transformToDataSet([pathToNegativeSamples,pathToPositiveSamples],"train_data4")
 
 # posNgrams = collectTopNGrams(pathToPositiveSamples,4,10000) - collectTopNGrams(pathToNegativeSamples,4,10000)
-# posCalls = collectTopNGrams(pathToPositiveSamples,4,10000)
-# negCalls = collectTopNGrams(pathToNegativeSamples,4,10000)
+# posCalls = collectTopCallsDump(pathToPositiveSamples, 2000)
+# negCalls = collectTopCallsDump(pathToNegativeSamples, 2000)
 # print(len(posCalls),len(negCalls))
 # calls = posCalls - negCalls
 # print(len(calls))
 
-# output_file = open(r'posGrams.csv','w')
+# output_file = open(r'posCallsNew.csv','w')
 # result = ""
 # for item in posCalls:
 #     result += str(item)
@@ -182,7 +168,7 @@ def transformToDataSet(folders,destFolder):
 # output_file.write(result)
 # output_file.close()
 
-# output_file = open(r'negGrams.csv','w')
+# output_file = open(r'negCalls.csv','w')
 # result = ""
 # for item in negCalls:
 #     result += str(item)
@@ -191,7 +177,7 @@ def transformToDataSet(folders,destFolder):
 # output_file.write(result)
 # output_file.close()
 
-# output_file = open(r'uniGrams.csv','w')
+# output_file = open(r'uniCalls.csv','w')
 # result = ""
 # for item in calls:
 #     result += str(item)

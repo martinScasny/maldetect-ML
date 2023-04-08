@@ -1,7 +1,6 @@
 from capstone import *
-import pe_parser
+from ctypes import CDLL, POINTER, c_char_p, c_int, c_uint32, pointer
 import hashlib
-
 
 def getCallsDump(code):
 	jump_ins = ['jmp','jz','jnz','je','jne','jg','jge','jl','jle','ja','jae','jb','jbe','jcxz','jecxz','jrcxz']
@@ -23,22 +22,6 @@ def getCallsDump(code):
 	if len(call_dump) == 0:
 		return None
 	return selectDistinctNgram(call_dump)
-
-# def testGetCallsDump(code):
-# 	jump_ins = ['jmp','jz','jnz','je','jne','jg','jge','jl','jle','ja','jae','jb','jbe','jcxz','jecxz','jrcxz']
-# 	call_dump = []
-# 	call = ""
-# 	counter = 0
-# 	for ins in code:
-# 		if ins in jump_ins or counter > 49:
-# 			call_dump.append(call)
-# 			call = ""
-# 			counter = 0
-# 		else:
-# 			call += ins
-# 			counter += 1
-	  
-# 	return selectDistinctNgram(call_dump)
 
 # POPAD, PUSHAD, JE, JC, LOOP, INT, JAE, CWD, LODSB,
 # JNE, IRET, PUSHA, JNC, POPA, STI, CLI, LEAVE, STD, CMC, BTR, BT, SETO,
@@ -123,29 +106,43 @@ def selectDistinctNgram(arr):
 
 def getNgram(filename,n):
     result = []
-    currGram = b''
     file = open(filename,"rb")
     bvalue = b''
+    b = 0
+    e = n
     try:
-        bvalue = file.read(n)
+        bvalue = file.read()
     except:
         print("no value")
         return result
-    result.append(int(bvalue.hex(),16))
-    currGram = bvalue
+    length = len(bvalue)
     while True:
-        bvalue = file.read(1)
-        if not bvalue:
+        if e == length:
             break
-
-        currGram = bytes.fromhex("".join(currGram.hex())[2:]) + bvalue
-        if currGram:
-            result.append(int(currGram.hex(),16))
+        result.append(int(bvalue[b:e].hex(),16))
+        b += 1
+        e += 1
             
     file.close()
     return selectDistinctNgram(result)
 
-				
+def getNgramC(filename, n):
+    # TODO relative path
+    path = r'C:\Users\Martin\Desktop\Anti-malware-tool\Anti-malware-tool\helper_functions\ngram_ext.so'
+    libObject = CDLL(path)
+    getNgram = libObject.get_ngram
+    getNgram.argtypes = [c_char_p, c_int, POINTER(c_int)]
+    getNgram.restype = POINTER(c_uint32)
+    num_ngrams = c_int(0)
+    num_ngramsPtr = pointer(num_ngrams)
+    arrPtr = getNgram(filename.encode('utf-8'), c_int(n), num_ngramsPtr)
+    result = [arrPtr[x] for x in range(num_ngramsPtr.contents.value)]
+    return selectDistinctNgram(result)
+
+# a = getNgramC("Anti-malware-tool/sample50mb",4)
+# b = getNgram("Anti-malware-tool/sample50mb",4)
+
+# print(a == b, a[0:20], b[0:20])
 # CODE = b"\x55\x48\x8b\x05\xb8\x13\x00\x00"
 # result = []
 # md = Cs(CS_ARCH_X86, CS_MODE_64)
@@ -156,4 +153,3 @@ def getNgram(filename,n):
 # peelement = pe_parser.createObject('Anti-malware-tool\\adware_lazy')
 # code = peelement.getCode()
 # print(getCallsDump(code))
-
