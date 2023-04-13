@@ -82,21 +82,24 @@ def filterCallsDump(code,posCalls):
         result[posCalls.index(i)] = 1
     return result
 
-def collectFeaturesFromFile(filePath, posNgrams, posCalls) -> list:
+def collectFeaturesForNI(filePath, posNgrams) -> list:
     result = []
     element = pe_parser.createObject(filePath)
     code = element.getCode()
     imports = element.getImports()
-    tampered = element.getTampSections()
-    packed = element.getPacked()
-    insRatio = feature_extractor.getInstRatio(code)
     ngram = filterNGrams(filePath, posNgrams)
-    callsDump = filterCallsDump(code, posCalls)
     result.append([pd.DataFrame(ngram).transpose(),
-                   pd.DataFrame(callsDump).transpose(),
-                   pd.DataFrame(insRatio).transpose(),
-                   pd.DataFrame(imports).transpose(),
-                   pd.DataFrame([tampered,packed]).transpose()])
+                   pd.DataFrame(imports).transpose()])
+    return result, element.getHash()
+
+def collectFeaturesForBI(filePath, posCalls) -> list:
+    result = []
+    element = pe_parser.createObject(filePath)
+    code = element.getCode()
+    imports = element.getImports()
+    callsDump = filterCallsDump(code, posCalls)
+    result.append([pd.DataFrame(callsDump).transpose(),
+                   pd.DataFrame(imports).transpose()])
     return result, element.getHash()
 
 def transformToDataSet(folders,destFolder):

@@ -199,14 +199,14 @@ class Element_PE():
     self.__filename = filename
     self.__imports = extractImports(pe)
     self.__hash = makeHash(filename)
-    self.__packed = isBinPacked(pe)
-    self.__tamperedSections = tamperedSections(pe)
+    # self.__packed = isBinPacked(pe)
+    # self.__tamperedSections = tamperedSections(pe)
     
   def getCode(self): return self.__code
   def getImports(self): return self.__imports
   def getHash(self): return self.__hash 
-  def getPacked(self): return self.__packed
-  def getTampSections(self): return self.__tamperedSections
+  # def getPacked(self): return self.__packed
+  # def getTampSections(self): return self.__tamperedSections
 ###############################
 
 

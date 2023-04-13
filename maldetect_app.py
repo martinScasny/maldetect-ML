@@ -4,9 +4,13 @@ from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 import nn_func
 
+upload_folder = 'uploads'
+if not os.path.exists(upload_folder):
+    os.makedirs(upload_folder)
+
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['UPLOAD_FOLDER'] = upload_folder
 
 def is_pe_file(file_path):
     try:
@@ -17,13 +21,7 @@ def is_pe_file(file_path):
     except pefile.PEFormatError:
         return False
 
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return jsonify({"error": "No file part in the request"}), 400
-
-    file = request.files['file']
-
+def process_file(file, model):
     if file.filename == '':
         return jsonify({"error": "No file selected"}), 400
 
@@ -35,10 +33,26 @@ def upload_file():
         os.remove(file_path)
         return jsonify({"error": "Uploaded file is not a valid PE file"}), 400
 
-    prediction_result, hash = nn_func.predict(file_path)
-    print(hash)
-    return jsonify({"message": "PE file processed successfully", "prediction": prediction_result,
+    prediction_result, hash = nn_func.predict(file_path, model=model)
+    used_model = "NI" if not model else "BI"
+    return jsonify({"message": "PE file processed successfully", "model": used_model, "prediction": prediction_result,
                     "md5": hash[0], "sha": hash[1]}), 200
+
+@app.route('/ni/upload', methods=['POST'])
+def upload_file_ni():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part in the request"}), 400
+
+    file = request.files['file']
+    return process_file(file, model=0)
+
+@app.route('/bi/upload', methods=['POST'])
+def upload_file_bi():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part in the request"}), 400
+
+    file = request.files['file']
+    return process_file(file, model=1)
 
 if __name__ == '__main__':
     app.run(debug=True)

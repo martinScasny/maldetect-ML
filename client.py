@@ -5,7 +5,7 @@ if len(sys.argv) != 2:
     print("Usage: python client.py <filename>")
     sys.exit(1)
 
-url = 'http://localhost:5000/upload'
+url = 'http://localhost:5000/bi/upload'
 file_path = sys.argv[1]
 
 try:
