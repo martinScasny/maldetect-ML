@@ -2,12 +2,12 @@ import os
 import pefile
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
-import nn_func
+from modules import nn_func
 
 upload_folder = 'uploads'
 if not os.path.exists(upload_folder):
     os.makedirs(upload_folder)
-
+    
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
 app.config['UPLOAD_FOLDER'] = upload_folder
