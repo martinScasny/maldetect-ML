@@ -13,7 +13,7 @@ These scripts will create a virtual environment and install all necessary packag
 ### Usage
 To start the application, enter virtual enviroment by:
 
-```./Scripts/Activate.ps1``` for windows or ```./Scripts/activate``` for linux.
+```./env/Scripts/Activate.ps1``` for windows or ```./env/Scripts/activate``` for linux.
 
 Then run server application by:
 
